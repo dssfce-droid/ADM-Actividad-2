@@ -189,6 +189,29 @@ m2pred <- predict(m2, type = "class")
 confusionMatrix(m2pred, data2$Abandono, positive = "Yes")
 
 ## 4 ¿Qué modelo de clasificación tiene una mayor precisión? ----
+# 1. Predicciones con el Modelo Logit (m1)
+# Calculamos la probabilidad y convertimos a clase "Yes/No" usando el umbral 0.5
+prob_logit <- predict(m1, type = "response")
+pred_logit <- factor(ifelse(prob_logit > 0.5, "Yes", "No"), levels = c("No", "Yes"))
+# 2. Predicciones con el Modelo de Árbol (m2)
+# El árbol permite obtener directamente la clase predicha
+pred_tree <- predict(m2, type = "class")
+# 3. Matrices de Confusión
+# Comparamos las predicciones contra la columna real 'Abandono' de data2
+cm_logit <- confusionMatrix(pred_logit, data2$Abandono, positive = "Yes")
+cm_tree  <- confusionMatrix(pred_tree, data2$Abandono, positive = "Yes")
+# 4. Cálculo de AUC (Área bajo la curva)
+roc_logit <- roc(data2$Abandono, prob_logit)
+# Para el árbol extraemos la probabilidad de la columna "Yes"
+prob_tree <- predict(m2, type = "prob")[, "Yes"]
+roc_tree  <- roc(data2$Abandono, prob_tree)
+# --- RESULTADOS ---
+cat("--- PRECISIÓN (ACCURACY) ---\n")
+cat("Logit:", round(cm_logit$overall["Accuracy"], 4), "\n")
+cat("Árbol:", round(cm_tree$overall["Accuracy"], 4), "\n\n")
+cat("--- ÁREA BAJO LA CURVA (AUC) ---\n")
+cat("Logit:", round(auc(roc_logit), 4), "\n")
+cat("Árbol:", round(auc(roc_tree), 4), "\n")
 
 
 ## 5 Partición del conjunto de datos: validación del modelo ----
